@@ -76,21 +76,32 @@ class Engine {
         }
     }
 
-    private ByteArrayOutputStream computeImage(Bitmap bitmap) {
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        int quality = 80;
-        bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
-        // 如果进行了上面的压缩后，依旧大于idealMaxSize，就进行小范围的微调压缩
-        while (stream.toByteArray().length > idealMaxSize * 1024) {
-            if (quality <= 0) {
-                break;
-            }
-            quality = quality - 10;
-            stream.reset();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
-        }
+    private ByteArrayOutputStream computeImage(Bitmap bitmap, ByteArrayOutputStream stream) {
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream);
         return stream;
     }
+
+    private void cyclicCompute(Bitmap bitmap, ByteArrayOutputStream stream) {
+        int quality = 80;
+        float ratio = 0.9f;
+        Matrix scaleMatrix = new Matrix();
+        while (idealMaxSize > 0 && stream.toByteArray().length > idealMaxSize * 1024 && ratio > 0.3) {
+            scaleMatrix.setScale(ratio, ratio, 0, 0);
+            Bitmap scaleBitmap = Bitmap.createBitmap((int) (bitmap.getWidth() * ratio), (int) (bitmap.getHeight() * ratio),
+                    Bitmap.Config.ARGB_8888);
+            Canvas canvas = new Canvas(scaleBitmap);
+            canvas.setMatrix(scaleMatrix);
+            canvas.drawBitmap(bitmap, 0, 0, new Paint(Paint.FILTER_BITMAP_FLAG));
+            ratio = ratio - 0.1f;
+            //当质量大于40时进行质量压缩
+            if (quality >= 40) {
+                quality = quality - 10;
+            }
+            stream.reset();
+            scaleBitmap.compress(Bitmap.CompressFormat.JPEG, quality, stream);
+        }
+    }
+
 
     // 其实我是不太懂为什么要旋转图片的
     private Bitmap rotatingImage(Bitmap bitmap) {
@@ -166,9 +177,11 @@ class Engine {
         tagBitmap = scaleImage(tagBitmap);
         // 旋转图片
         tagBitmap = rotatingImage(tagBitmap);
-        // 质量压缩 可以循环使用质量压缩将其压制额定大小内 quality最小值为10
-        // TODO 最好可以采用组合调整的策略 增加最小值 如果 到最小值仍旧大于目标大小时改用缩放法
-        ByteArrayOutputStream stream = computeImage(tagBitmap);
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        // 质量压缩
+        computeImage(tagBitmap, stream);
+        //  通过缩放法和质量压缩法循环压缩 以缩放法缩减至0.3，质量压缩至0.4为极限
+        cyclicCompute(tagBitmap, stream);
         tagBitmap.recycle();
 
         // 写到缓存的路径下
