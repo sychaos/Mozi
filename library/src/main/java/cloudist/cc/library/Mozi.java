@@ -15,7 +15,7 @@ import java.util.List;
  * Created by cloudist on 2017/10/31.
  */
 
-public class BitmapCompress {
+public class Mozi {
 
     private static final String DEFAULT_DISK_CACHE_DIR = "bitmap_compress_disk_cache";
 
@@ -30,12 +30,12 @@ public class BitmapCompress {
     private int maxHeight = -1;
     private int idealMaxSize = -1;
 
-    private BitmapCompress(Builder builder) {
+    private Mozi(Builder builder) {
         this.mPaths = builder.mPaths;
         this.mTargetDir = builder.mTargetDir;
         this.maxWidth = builder.maxWidth;
         this.maxHeight = builder.maxHeight;
-        this.idealMaxSize = builder.idealMaxSize;
+        this.idealMaxSize = builder.maxSize;
     }
 
     public static Builder with(Context context) {
@@ -134,15 +134,15 @@ public class BitmapCompress {
         private List<String> mPaths;
         private int maxWidth = -1;
         private int maxHeight = -1;
-        private int idealMaxSize = -1;
+        private int maxSize = -1;
 
         Builder(Context context) {
             this.context = context;
             this.mPaths = new ArrayList<>();
         }
 
-        private BitmapCompress build() {
-            return new BitmapCompress(this);
+        private Mozi build() {
+            return new Mozi(this);
         }
 
         public Builder load(File file) {
@@ -175,8 +175,9 @@ public class BitmapCompress {
             return this;
         }
 
-        public Builder setIdealMaxSize(int idealMaxSize) {
-            this.idealMaxSize = idealMaxSize;
+        // 设置压缩后图片的最大大小 单位k
+        public Builder setMaxSize(int maxSize) {
+            this.maxSize = maxSize;
             return this;
         }
 

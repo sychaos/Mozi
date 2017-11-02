@@ -182,6 +182,7 @@ class Engine {
         computeImage(tagBitmap, stream);
         //  通过缩放法和质量压缩法循环压缩 以缩放法缩减至0.3，质量压缩至0.4为极限
         cyclicCompute(tagBitmap, stream);
+
         tagBitmap.recycle();
 
         // 写到缓存的路径下

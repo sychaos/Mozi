@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">BitmapCompress</string>
+  <string name="app_name">Mozi</string>
+  <string name="choose_image">选择图片</string>
 </resources>
