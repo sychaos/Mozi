@@ -3,9 +3,7 @@
 
 ## ScreenShot
 
-<img src="display/screenshot_1.png" width = "135" height = "240" alt="screenshot_1" align=center />
-
-<img src="display/screenshot_2.png" width = "135" height = "240" alt="screenshot_2" align=center />
+<img src="display/screenshot_1.png" width = "135" height = "240" alt="screenshot_1" align=center />     <img src="display/screenshot_2.png" width = "135" height = "240" alt="screenshot_2" align=center />
 
 ## Usage
 
