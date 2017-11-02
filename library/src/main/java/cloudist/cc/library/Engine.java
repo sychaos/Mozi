@@ -58,19 +58,24 @@ class Engine {
 
         //scale 比例
         float scale = ((float) shortSide / longSide);
-        // 这部分看不懂 不知道具体的几个值有什么含义 返回的是采样率 TODO
+        //[1, 0.5625) 即图片处于 [1:1 ~ 9:16)
         if (scale <= 1 && scale > 0.5625) {
+            // 且长边小于1664 采样率为1
             if (longSide < 1664) {
                 return 1;
+                // 且长边在[1664, 4990) 采样率为2
             } else if (longSide >= 1664 && longSide < 4990) {
                 return 2;
-            } else if (longSide > 4990 && longSide < 10240) {
+                // 且长边在[4990, 10240) 采样率为4
+            } else if (longSide >= 4990 && longSide < 10240) {
                 return 4;
             } else {
                 return longSide / 1280 == 0 ? 1 : longSide / 1280;
             }
+            //  [0.5625, 0.5) 即图片处于 [9:16 ~ 1:2) 比例范围内
         } else if (scale <= 0.5625 && scale > 0.5) {
             return longSide / 1280 == 0 ? 1 : longSide / 1280;
+            //  [0.5, 0) 即图片处于 [1:2 ~ 1:∞) 比例范围内
         } else {
             return (int) Math.ceil(longSide / (1280.0 / scale));
         }
