@@ -4,19 +4,16 @@
 ## Sample Code
 ```Java
     Mozi.with(MainActivity.this)
-        .setMaxSize(200)
+        .setMaxSize(maxSize)
+        .setMaxWidthAndHeight(width,height)
         .load(list).get();
 ```
 或者
 ```Java
     Mozi.with(MainActivity.this)
-        .setMaxSize(maxSize)
-        .setMaxWidthAndHeight(width,height)
-        .load(list).get();
-        
-    Mozi.with(MainActivity.this)
         .get(path);
 ```
+两者都要写在子线程中
 
 ## Thanks
 [Luban](https://github.com/Curzibn/Luban) 
