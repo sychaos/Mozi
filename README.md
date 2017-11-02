@@ -1,6 +1,29 @@
 # Mozi
 图片压缩,支持限制最大宽高，及最大图片大小 名字来源于中学课本，毕竟这个库脱胎于鲁班，哈哈
 
+## ScreenShot
+
+    <img src="display/screenshot_1.png" width = "270" height = "480" alt="InputPasswordDialog" align=center />
+
+    <img src="display/screenshot_2.png" width = "270" height = "480" alt="PasswordInputView" align=center />
+
+## Usage
+
+Step 1. Add it in your root build.gradle at the end of repositories:
+
+	allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+
+Step 2. Add the dependency
+
+	dependencies {
+	        compile 'com.github.sychaos:Mozi:1.0.0'
+	}
+
 ## Sample Code
 ```Java
     Mozi.with(MainActivity.this)
