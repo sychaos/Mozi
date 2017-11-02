@@ -49,7 +49,8 @@ public class Mozi {
     private File get(String path, Context context) throws IOException {
         return new Engine(path, getImageCacheFile(context, Checker.checkSuffix(path)))
                 .setIdealMaxSize(idealMaxSize)
-                .setMaxWidthAndHeight(maxWidth, maxHeight)
+                .setMaxHeight(maxHeight)
+                .setMaxWidth(maxWidth)
                 .compress();
     }
 
@@ -66,7 +67,8 @@ public class Mozi {
                 // getImageCacheFile(context, Checker.checkSuffix(path) 获取缓存该图片的文件路径
                 results.add(new Engine(path, getImageCacheFile(context, Checker.checkSuffix(path)))
                         .setIdealMaxSize(idealMaxSize)
-                        .setMaxWidthAndHeight(maxWidth, maxHeight)
+                        .setMaxHeight(maxHeight)
+                        .setMaxWidth(maxWidth)
                         .compress());
             }
             iterator.remove();
@@ -189,8 +191,12 @@ public class Mozi {
             return this;
         }
 
-        public Builder setMaxWidthAndHeight(int maxWidth, int maxHeight) {
+        public Builder setMaxWidth(int maxWidth) {
             this.maxWidth = maxWidth;
+            return this;
+        }
+
+        public Builder setMaxHeight(int maxHeight) {
             this.maxHeight = maxHeight;
             return this;
         }

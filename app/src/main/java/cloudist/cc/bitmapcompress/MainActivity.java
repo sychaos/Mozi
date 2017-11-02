@@ -81,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public List<File> apply(@NonNull List<String> list) throws Exception {
                         return Mozi.with(MainActivity.this)
-                                .setMaxSize(200)
                                 .load(list).get();
                     }
                 })

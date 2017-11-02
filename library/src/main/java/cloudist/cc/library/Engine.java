@@ -130,14 +130,20 @@ class Engine {
     }
 
     private Bitmap scaleImage(Bitmap bitmap) {
-        if (maxWidth < 0 || maxHeight < 0) {
-            return bitmap;
-        }
         int actualHeight = srcHeight;
         int actualWidth = srcWidth;
 
         //计算图片的宽高比
         float imgRatio = (float) actualWidth / actualHeight;
+
+        if (maxWidth <= 0 && maxHeight <= 0) {
+            return bitmap;
+        } else if (maxWidth <= 0) {
+            maxWidth = (int) (maxHeight * imgRatio);
+        } else if (maxHeight <= 0) {
+            maxHeight = (int) (maxWidth / imgRatio);
+        }
+
         //计算输出图片的最大宽高比
         float maxRatio = (float) maxWidth / maxHeight;
         //width and height values are set maintaining the aspect ratio of the image
@@ -161,7 +167,6 @@ class Engine {
             float ratioY = actualHeight / (float) srcHeight;
             Matrix scaleMatrix = new Matrix();
             scaleMatrix.setScale(ratioX, ratioY, 0, 0);
-            // 1.跟下面是一样的效果 根据矩阵数据进行新bitmap的创建 主要差别在于bitmapConfig的设置
             Canvas canvas = new Canvas(scaleBitmap);
             canvas.setMatrix(scaleMatrix);
             canvas.drawBitmap(bitmap, 0, 0, new Paint(Paint.FILTER_BITMAP_FLAG));
@@ -185,7 +190,7 @@ class Engine {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         // 质量压缩
         computeImage(tagBitmap, stream);
-        //  通过缩放法和质量压缩法循环压缩 以缩放法缩减至0.3，质量压缩至0.4为极限
+        // 通过缩放法和质量压缩法循环压缩 以缩放法缩减至0.3，质量压缩至0.4为极限
         cyclicCompute(tagBitmap, stream);
 
         tagBitmap.recycle();
@@ -199,8 +204,12 @@ class Engine {
         return tagImg;
     }
 
-    public Engine setMaxWidthAndHeight(int maxWidth, int maxHeight) {
+    public Engine setMaxWidth(int maxWidth) {
         this.maxWidth = maxWidth;
+        return this;
+    }
+
+    public Engine setMaxHeight(int maxHeight) {
         this.maxHeight = maxHeight;
         return this;
     }
