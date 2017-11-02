@@ -25,7 +25,6 @@ import io.reactivex.schedulers.Schedulers;
 import me.iwf.photopicker.PhotoPicker;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "Luban";
 
     private List<ImageBean> mImageList = new ArrayList<>();
     private ImageAdapter mAdapter = new ImageAdapter(mImageList);
@@ -93,21 +92,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
-    }
-
-    /**
-     * 压缩图片 Listener 方式
-     */
-    private void compressWithLs(final List<String> photos) {
-    }
-
-    private String getPath() {
-        String path = Environment.getExternalStorageDirectory() + "/Luban/image/";
-        File file = new File(path);
-        if (file.mkdirs()) {
-            return path;
-        }
-        return path;
     }
 
     private void showResult(List<String> photos, File file) {
