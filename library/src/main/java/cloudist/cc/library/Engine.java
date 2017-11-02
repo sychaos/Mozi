@@ -108,7 +108,7 @@ class Engine {
     }
 
 
-    // 其实我是不太懂为什么要旋转图片的
+    // 其实我是不太懂为什么要旋转图片的，但是事实证明这个方法必须用。。。。
     private Bitmap rotatingImage(Bitmap bitmap) {
         if (srcExif == null) return bitmap;
 
@@ -147,14 +147,14 @@ class Engine {
             if (imgRatio < maxRatio) {
                 imgRatio = (float) maxHeight / actualHeight;
                 actualWidth = (int) (imgRatio * actualWidth);
-                actualHeight = (int) maxHeight;
+                actualHeight = maxHeight;
             } else if (imgRatio > maxRatio) {
                 imgRatio = (float) maxWidth / actualWidth;
                 actualHeight = (int) (imgRatio * actualHeight);
-                actualWidth = (int) maxWidth;
+                actualWidth = maxWidth;
             } else {
-                actualHeight = (int) maxHeight;
-                actualWidth = (int) maxWidth;
+                actualHeight = maxHeight;
+                actualWidth = maxWidth;
             }
             Bitmap scaleBitmap = Bitmap.createBitmap(actualWidth, actualHeight, Bitmap.Config.ARGB_8888);
             float ratioX = actualWidth / (float) srcWidth;

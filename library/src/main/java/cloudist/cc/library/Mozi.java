@@ -75,6 +75,26 @@ public class Mozi {
         return results;
     }
 
+    @WorkerThread
+    private void clear(Context context) {
+        if (TextUtils.isEmpty(mTargetDir)) {
+            // 缓存图片的文件夹
+            mTargetDir = getImageCacheDir(context).getAbsolutePath();
+        }
+        File cacheDir = new File(mTargetDir);
+        // 不存在则返回
+        if (!cacheDir.exists()) {
+            return;
+        }
+        // 删除
+        File[] files = cacheDir.listFiles();
+        if (cacheDir.isDirectory() && files.length != 0) {
+            for (File file : files) {
+                file.delete();
+            }
+        }
+    }
+
     /**
      * Returns a mFile with a cache audio name in the private cache directory.
      *
@@ -192,6 +212,15 @@ public class Mozi {
          */
         public List<File> get() throws IOException {
             return build().get(context);
+        }
+
+        /**
+         * begin clear image with synchronize
+         *
+         * @return the thumb image file list
+         */
+        public void clear() {
+            build().clear(context);
         }
     }
 

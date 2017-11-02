@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(mAdapter);
 
         Button fab = (Button) findViewById(R.id.fab);
+        Button clear = (Button) findViewById(R.id.clear);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -49,6 +50,12 @@ public class MainActivity extends AppCompatActivity {
                         .setShowGif(true)
                         .setPreviewEnabled(false)
                         .start(MainActivity.this, PhotoPicker.REQUEST_CODE);
+            }
+        });
+        clear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Mozi.with(MainActivity.this).clear();
             }
         });
     }

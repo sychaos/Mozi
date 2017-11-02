@@ -1,4 +1,5 @@
 <resources>
   <string name="app_name">Mozi</string>
   <string name="choose_image">选择图片</string>
+  <string name="clear">清理缓存</string>
 </resources>
