@@ -3,9 +3,9 @@
 
 ## ScreenShot
 
-    <img src="display/screenshot_1.png" width = "270" height = "480" alt="InputPasswordDialog" align=center />
+<img src="display/screenshot_1.png" width = "270" height = "480" alt="InputPasswordDialog" align=center />
 
-    <img src="display/screenshot_2.png" width = "270" height = "480" alt="PasswordInputView" align=center />
+<img src="display/screenshot_2.png" width = "270" height = "480" alt="PasswordInputView" align=center />
 
 ## Usage
 
