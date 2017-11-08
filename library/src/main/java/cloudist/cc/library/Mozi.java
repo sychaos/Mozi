@@ -126,7 +126,7 @@ public class Mozi {
                 "#W" + maxWidth +
                 "#H" + maxHeight +
                 "#S" + idealMaxSize +
-                path.hashCode() +
+                Checker.getKey(path) +
                 (TextUtils.isEmpty(suffix) ? ".jpg" : suffix);
 
         return new File(cacheBuilder);

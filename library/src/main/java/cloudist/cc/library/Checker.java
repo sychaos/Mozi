@@ -48,6 +48,14 @@ class Checker {
         return path.substring(path.lastIndexOf("."), path.length());
     }
 
+    static String getKey(String path) {
+        if (TextUtils.isEmpty(path)) {
+            return "path";
+        }
+
+        return path.replace("/", "-");
+    }
+
     static boolean isNeedCompress(int leastCompressSize, String path) {
         if (leastCompressSize > 0) {
             File source = new File(path);
