@@ -47,11 +47,18 @@ public class Mozi {
      */
     @WorkerThread
     private File get(String path, Context context) throws IOException {
-        return new Engine(path, getImageCacheFile(context, Checker.checkSuffix(path)))
-                .setIdealMaxSize(idealMaxSize)
-                .setMaxHeight(maxHeight)
-                .setMaxWidth(maxWidth)
-                .compress();
+        File file = getImageCacheFile(context, path, Checker.checkSuffix(path),
+                maxWidth, maxHeight, idealMaxSize);
+        if (file.exists()) {
+            // 如果缓存文件已经存在直接返回
+            return file;
+        } else {
+            return new Engine(path, file)
+                    .setIdealMaxSize(idealMaxSize)
+                    .setMaxHeight(maxHeight)
+                    .setMaxWidth(maxWidth)
+                    .compress();
+        }
     }
 
     @WorkerThread
@@ -64,12 +71,19 @@ public class Mozi {
             String path = iterator.next();
             // 通过后缀名判断是否为图片
             if (Checker.isImage(path)) {
-                // getImageCacheFile(context, Checker.checkSuffix(path) 获取缓存该图片的文件路径
-                results.add(new Engine(path, getImageCacheFile(context, Checker.checkSuffix(path)))
-                        .setIdealMaxSize(idealMaxSize)
-                        .setMaxHeight(maxHeight)
-                        .setMaxWidth(maxWidth)
-                        .compress());
+                File file = getImageCacheFile(context, path, Checker.checkSuffix(path),
+                        maxWidth, maxHeight, idealMaxSize);
+                if (file.exists()) {
+                    results.add(file);
+                } else {
+                    // getImageCacheFile(context, Checker.checkSuffix(path) 获取缓存该图片的文件路径
+                    // 可以考虑多线程 TODO 其实没啥必要主要是针对idealSize很小的情况下会变慢
+                    results.add(new Engine(path, file)
+                            .setIdealMaxSize(idealMaxSize)
+                            .setMaxHeight(maxHeight)
+                            .setMaxWidth(maxWidth)
+                            .compress());
+                }
             }
             iterator.remove();
         }
@@ -102,15 +116,17 @@ public class Mozi {
      *
      * @param context A context.
      */
-    private File getImageCacheFile(Context context, String suffix) {
+    private File getImageCacheFile(Context context, String path, String suffix, int maxWidth, int maxHeight, int idealMaxSize) {
         if (TextUtils.isEmpty(mTargetDir)) {
             // 生成一个缓存图片的文件夹
             mTargetDir = getImageCacheDir(context).getAbsolutePath();
         }
 
         String cacheBuilder = mTargetDir + "/" +
-                System.currentTimeMillis() +
-                (int) (Math.random() * 1000) +
+                "#W" + maxWidth +
+                "#H" + maxHeight +
+                "#S" + idealMaxSize +
+                path.hashCode() +
                 (TextUtils.isEmpty(suffix) ? ".jpg" : suffix);
 
         return new File(cacheBuilder);
