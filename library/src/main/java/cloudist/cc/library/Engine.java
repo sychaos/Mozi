@@ -47,7 +47,7 @@ class Engine {
     }
 
     // 采样率计算采样率
-    private int computeSize() {
+    private int computeNormalSize() {
         // 强行变成偶数（不要问我为啥子）
         srcWidth = srcWidth % 2 == 1 ? srcWidth + 1 : srcWidth;
         srcHeight = srcHeight % 2 == 1 ? srcHeight + 1 : srcHeight;
@@ -57,6 +57,7 @@ class Engine {
         int shortSide = Math.min(srcWidth, srcHeight);
 
         //scale 比例
+        // TODO 其实我是看不懂为什么用1664，4990和10240的
         float scale = ((float) shortSide / longSide);
         //[1, 0.5625) 即图片处于 [1:1 ~ 9:16)
         if (scale <= 1 && scale > 0.5625) {
@@ -81,9 +82,86 @@ class Engine {
         }
     }
 
-    private ByteArrayOutputStream computeImage(Bitmap bitmap, ByteArrayOutputStream stream) {
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream);
-        return stream;
+    private int computeScaleSize() {
+        //计算图片的宽高比
+        float imgRatio = (float) srcWidth / srcHeight;
+
+        if (maxWidth <= 0) {
+            maxWidth = (int) (maxHeight * imgRatio);
+        } else if (maxHeight <= 0) {
+            maxHeight = (int) (maxWidth / imgRatio);
+        }
+
+        int inSampleSize = 1;
+        // 调整采样率 如果 输出图片宽高比原图大 用比例较大的值作为采样率
+        if (srcHeight > maxHeight || srcWidth > maxWidth) {
+            final int heightRatio = Math.round((float) srcHeight / (float) maxHeight);
+            final int widthRatio = Math.round((float) srcWidth / (float) maxWidth);
+            inSampleSize = heightRatio < widthRatio ? heightRatio : widthRatio;
+        }
+
+        final float totalPixels = srcWidth * srcHeight;
+        final float totalReqPixelsCap = maxWidth * maxHeight * 2;
+        //  采样率如果不合适的话 +1
+        while (totalPixels / (inSampleSize * inSampleSize) > totalReqPixelsCap) {
+            inSampleSize++;
+        }
+
+        return inSampleSize;
+    }
+
+    private Bitmap compressNormalBitmap() {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        // 这是一套方法 start
+        options.inSampleSize = computeNormalSize();
+        // 采样率压缩
+        return BitmapFactory.decodeFile(srcImg, options);
+    }
+
+    private Bitmap compressScaleBitmap() {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        // 这是一套方法 start
+        options.inSampleSize = computeScaleSize();
+        // 采样率压缩
+        Bitmap bmp = BitmapFactory.decodeFile(srcImg, options);
+        // 缩放法压缩
+        Bitmap scaledBitmap = Bitmap.createBitmap(maxWidth, maxHeight, Bitmap.Config.ARGB_8888);
+
+        float ratioX = maxWidth / (float) options.outWidth;
+        float ratioY = maxHeight / (float) options.outHeight;
+
+        Matrix scaleMatrix = new Matrix();
+        scaleMatrix.setScale(ratioX, ratioY, 0, 0);
+
+        // 根据矩阵数据进行新bitmap的创建
+        assert scaledBitmap != null;
+        Canvas canvas = new Canvas(scaledBitmap);
+        canvas.setMatrix(scaleMatrix);
+        assert bmp != null;
+        canvas.drawBitmap(bmp, 0, 0, new Paint(Paint.FILTER_BITMAP_FLAG));
+
+        return scaledBitmap;
+    }
+
+    // 其实我是不太懂为什么要旋转图片的，但是事实证明这个方法必须用。。。。
+    private Bitmap rotatingImage(Bitmap bitmap) {
+        if (srcExif == null) return bitmap;
+
+        Matrix matrix = new Matrix();
+        int orientation = srcExif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+        switch (orientation) {
+            case ExifInterface.ORIENTATION_ROTATE_90:
+                matrix.postRotate(90);
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_180:
+                matrix.postRotate(180);
+                break;
+            case ExifInterface.ORIENTATION_ROTATE_270:
+                matrix.postRotate(270);
+                break;
+        }
+
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
     private void cyclicCompute(Bitmap bitmap, ByteArrayOutputStream stream) {
@@ -107,84 +185,20 @@ class Engine {
         }
     }
 
-
-    // 其实我是不太懂为什么要旋转图片的，但是事实证明这个方法必须用。。。。
-    private Bitmap rotatingImage(Bitmap bitmap) {
-        if (srcExif == null) return bitmap;
-
-        Matrix matrix = new Matrix();
-        int orientation = srcExif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
-        switch (orientation) {
-            case ExifInterface.ORIENTATION_ROTATE_90:
-                matrix.postRotate(90);
-                break;
-            case ExifInterface.ORIENTATION_ROTATE_180:
-                matrix.postRotate(180);
-                break;
-            case ExifInterface.ORIENTATION_ROTATE_270:
-                matrix.postRotate(270);
-                break;
-        }
-
-        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-    }
-
-    private Bitmap scaleImage(Bitmap bitmap) {
-        int actualHeight = srcHeight;
-        int actualWidth = srcWidth;
-
-        //计算图片的宽高比
-        float imgRatio = (float) actualWidth / actualHeight;
-
-        if (maxWidth <= 0 && maxHeight <= 0) {
-            return bitmap;
-        } else if (maxWidth <= 0) {
-            maxWidth = (int) (maxHeight * imgRatio);
-        } else if (maxHeight <= 0) {
-            maxHeight = (int) (maxWidth / imgRatio);
-        }
-
-        //计算输出图片的最大宽高比
-        float maxRatio = (float) maxWidth / maxHeight;
-        //width and height values are set maintaining the aspect ratio of the image
-        //如果原图比输出图片的高或者宽大，重新调整输出bitmap的宽高
-        //如果原图小，这直接输出原图的宽高
-        if (actualHeight > maxHeight || actualWidth > maxWidth) {
-            if (imgRatio < maxRatio) {
-                imgRatio = (float) maxHeight / actualHeight;
-                actualWidth = (int) (imgRatio * actualWidth);
-                actualHeight = maxHeight;
-            } else if (imgRatio > maxRatio) {
-                imgRatio = (float) maxWidth / actualWidth;
-                actualHeight = (int) (imgRatio * actualHeight);
-                actualWidth = maxWidth;
-            } else {
-                actualHeight = maxHeight;
-                actualWidth = maxWidth;
-            }
-            Bitmap scaleBitmap = Bitmap.createBitmap(actualWidth, actualHeight, Bitmap.Config.ARGB_8888);
-            float ratioX = actualWidth / (float) srcWidth;
-            float ratioY = actualHeight / (float) srcHeight;
-            Matrix scaleMatrix = new Matrix();
-            scaleMatrix.setScale(ratioX, ratioY, 0, 0);
-            Canvas canvas = new Canvas(scaleBitmap);
-            canvas.setMatrix(scaleMatrix);
-            canvas.drawBitmap(bitmap, 0, 0, new Paint(Paint.FILTER_BITMAP_FLAG));
-            // 缩放法压缩
-            return scaleBitmap;
-        } else {
-            return bitmap;
-        }
+    private ByteArrayOutputStream computeImage(Bitmap bitmap, ByteArrayOutputStream stream) {
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream);
+        return stream;
     }
 
     File compress() throws IOException {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inSampleSize = computeSize();
 
-        // 采样率压缩
-        Bitmap tagBitmap = BitmapFactory.decodeFile(srcImg, options);
-        // 缩放法压缩
-        tagBitmap = scaleImage(tagBitmap);
+        Bitmap tagBitmap;
+
+        if (maxHeight < 0 && maxWidth < 0) {
+            tagBitmap = compressNormalBitmap();
+        } else {
+            tagBitmap = compressScaleBitmap();
+        }
         // 旋转图片
         tagBitmap = rotatingImage(tagBitmap);
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
