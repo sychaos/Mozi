@@ -3,6 +3,8 @@ package cloudist.cc.library;
 import android.text.TextUtils;
 
 import java.io.File;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,10 +52,19 @@ class Checker {
 
     static String getKey(String path) {
         if (TextUtils.isEmpty(path)) {
-            return "path";
+            throw new IllegalArgumentException("file path is empty");
         }
+        String key;
 
-        return path.replace("/", "-");
+        try {
+            MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+            messageDigest.update(path.getBytes());
+            key = bytesToHexString(messageDigest.digest());
+        } catch (NoSuchAlgorithmException e) {
+            key = String.valueOf(path.hashCode());
+        }
+        return key;
+
     }
 
     static boolean isNeedCompress(int leastCompressSize, String path) {
@@ -68,5 +79,17 @@ class Checker {
             }
         }
         return true;
+    }
+
+    private static String bytesToHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            String hex = Integer.toHexString(0xFF & b);
+            if (hex.length() == 1) {
+                sb.append("0");
+            }
+            sb.append(hex);
+        }
+        return sb.toString();
     }
 }
