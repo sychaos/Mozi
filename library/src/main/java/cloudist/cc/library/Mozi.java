@@ -8,7 +8,6 @@ import android.text.TextUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -46,8 +45,8 @@ public class Mozi {
      * start compress and return the mFile
      */
     @WorkerThread
-    private File get(String path, Context context) throws IOException {
-        File file = getImageCacheFile(context, path, Checker.checkSuffix(path),
+    private File get(String path, Context context, KeyNorm keyNorm) throws IOException {
+        File file = getImageCacheFile(context, keyNorm, 0, path, Checker.checkSuffix(path),
                 maxWidth, maxHeight, idealMaxSize);
         if (file.exists()) {
             // 如果缓存文件已经存在直接返回
@@ -62,16 +61,15 @@ public class Mozi {
     }
 
     @WorkerThread
-    private List<File> get(Context context) throws IOException {
+    private List<File> get(Context context, KeyNorm keyNorm) throws IOException {
         List<File> results = new ArrayList<>();
-        Iterator<String> iterator = mPaths.iterator();
 
         // 循环
-        while (iterator.hasNext()) {
-            String path = iterator.next();
+        for (int i = 0; i < mPaths.size(); i++) {
+            String path = mPaths.get(i);
             // 通过后缀名判断是否为图片
             if (Checker.isImage(path)) {
-                File file = getImageCacheFile(context, path, Checker.checkSuffix(path),
+                File file = getImageCacheFile(context, keyNorm, i, path, Checker.checkSuffix(path),
                         maxWidth, maxHeight, idealMaxSize);
                 if (file.exists()) {
                     results.add(file);
@@ -85,9 +83,7 @@ public class Mozi {
                             .compress());
                 }
             }
-            iterator.remove();
         }
-
         return results;
     }
 
@@ -111,23 +107,55 @@ public class Mozi {
         }
     }
 
+    private File getFile(String key, Context context) {
+        if (TextUtils.isEmpty(mTargetDir)) {
+            // 生成一个缓存图片的文件夹
+            mTargetDir = getImageCacheDir(context).getAbsolutePath();
+        }
+        return new File(mTargetDir + "/" +
+                Checker.getKey(key) +
+                ".jpg");
+    }
+
+    private File getFile(String path, int maxWidth, int maxHeight, int idealMaxSize, Context context) {
+        if (TextUtils.isEmpty(mTargetDir)) {
+            // 生成一个缓存图片的文件夹
+            mTargetDir = getImageCacheDir(context).getAbsolutePath();
+        }
+        String suffix = Checker.checkSuffix(path);
+        return new File(mTargetDir + "/" +
+                Checker.getKey(path) +
+                "#W" + maxWidth +
+                "#H" + maxHeight +
+                "#S" + idealMaxSize +
+                (TextUtils.isEmpty(suffix) ? ".jpg" : suffix));
+    }
+
     /**
      * Returns a mFile with a cache audio name in the private cache directory.
      *
      * @param context A context.
      */
-    private File getImageCacheFile(Context context, String path, String suffix, int maxWidth, int maxHeight, int idealMaxSize) {
+    private File getImageCacheFile(Context context, KeyNorm keyNorm, int index,
+                                   String path, String suffix,
+                                   int maxWidth, int maxHeight, int idealMaxSize) {
         if (TextUtils.isEmpty(mTargetDir)) {
             // 生成一个缓存图片的文件夹
             mTargetDir = getImageCacheDir(context).getAbsolutePath();
         }
-
-        String cacheBuilder = mTargetDir + "/" +
-                "#W" + maxWidth +
-                "#H" + maxHeight +
-                "#S" + idealMaxSize +
-                Checker.getKey(path) +
-                (TextUtils.isEmpty(suffix) ? ".jpg" : suffix);
+        String cacheBuilder;
+        if (keyNorm == null) {
+            cacheBuilder = mTargetDir + "/" +
+                    Checker.getKey(path) +
+                    "#W" + maxWidth +
+                    "#H" + maxHeight +
+                    "#S" + idealMaxSize +
+                    (TextUtils.isEmpty(suffix) ? ".jpg" : suffix);
+        } else {
+            cacheBuilder = mTargetDir + "/" +
+                    Checker.getKey(keyNorm.nameRule(index)) +
+                    ".jpg";
+        }
 
         return new File(cacheBuilder);
     }
@@ -224,7 +252,11 @@ public class Mozi {
         }
 
         public File get(String path) throws IOException {
-            return build().get(path, context);
+            return build().get(path, context, null);
+        }
+
+        public File get(String path, KeyNorm keyNorm) throws IOException {
+            return build().get(path, context, keyNorm);
         }
 
         /**
@@ -233,16 +265,31 @@ public class Mozi {
          * @return the thumb image file list
          */
         public List<File> get() throws IOException {
-            return build().get(context);
+            return build().get(context, null);
+        }
+
+        /**
+         * begin compress image with synchronize
+         *
+         * @return the thumb image file list
+         */
+        public List<File> get(KeyNorm keyNorm) throws IOException {
+            return build().get(context, keyNorm);
         }
 
         /**
          * begin clear image with synchronize
-         *
-         * @return the thumb image file list
          */
         public void clear() {
             build().clear(context);
+        }
+
+        public File getFile(String key) {
+            return build().getFile(key, context);
+        }
+
+        public File getFile(String path, int maxWidth, int maxHeight, int idealMaxSize) {
+            return build().getFile(path, maxWidth, maxHeight, idealMaxSize, context);
         }
     }
 
