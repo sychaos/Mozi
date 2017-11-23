@@ -3,18 +3,19 @@ package cloudist.cc.bitmapcompress;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import cloudist.cc.library.KeyNorm;
 import cloudist.cc.library.Mozi;
 import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
 
         Button fab = (Button) findViewById(R.id.fab);
         Button clear = (Button) findViewById(R.id.clear);
+        Button getFile = (Button) findViewById(R.id.getFile);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -48,7 +50,18 @@ public class MainActivity extends AppCompatActivity {
                         .setShowCamera(true)
                         .setShowGif(true)
                         .setPreviewEnabled(false)
-                        .start(MainActivity.this, PhotoPicker.REQUEST_CODE);
+                        .start(MainActivity.this, 10300);
+            }
+        });
+        getFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PhotoPicker.builder()
+                        .setPhotoCount(9)
+                        .setShowCamera(true)
+                        .setShowGif(true)
+                        .setPreviewEnabled(false)
+                        .start(MainActivity.this, 10301);
             }
         });
         clear.setOnClickListener(new View.OnClickListener() {
@@ -63,12 +76,22 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (resultCode == RESULT_OK && requestCode == PhotoPicker.REQUEST_CODE) {
-            if (data != null) {
-                mImageList.clear();
+        if (resultCode == RESULT_OK) {
+            if (requestCode == 10300) {
+                if (data != null) {
+                    mImageList.clear();
 
-                ArrayList<String> photos = data.getStringArrayListExtra(PhotoPicker.KEY_SELECTED_PHOTOS);
-                compressWithRx(photos);
+                    ArrayList<String> photos = data.getStringArrayListExtra(PhotoPicker.KEY_SELECTED_PHOTOS);
+                    compressWithRx(photos);
+                }
+            }
+            if (requestCode == 10301) {
+                if (data != null) {
+                    mImageList.clear();
+                    ArrayList<String> photos = data.getStringArrayListExtra(PhotoPicker.KEY_SELECTED_PHOTOS);
+                    File file = Mozi.with(MainActivity.this).getFile(photos.get(0) + "玩个毛");
+                    Toast.makeText(MainActivity.this, file.exists() + "", Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }
@@ -78,9 +101,13 @@ public class MainActivity extends AppCompatActivity {
                 .observeOn(Schedulers.io())
                 .map(new Function<List<String>, List<File>>() {
                     @Override
-                    public List<File> apply(@NonNull List<String> list) throws Exception {
-                        return Mozi.with(MainActivity.this)
-                                .load(list).get();
+                    public List<File> apply(@NonNull final List<String> list) throws Exception {
+                        return Mozi.with(MainActivity.this).load(list).get(new KeyNorm() {
+                            @Override
+                            public String nameRule(int index) {
+                                return list.get(index) + "玩个毛";
+                            }
+                        });
                     }
                 })
                 .observeOn(AndroidSchedulers.mainThread())

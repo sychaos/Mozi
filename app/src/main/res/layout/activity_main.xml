@@ -31,10 +31,19 @@
             android:id="@+id/fab"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_above="@+id/clear"
+            android:layout_above="@+id/getFile"
             android:layout_alignParentRight="true"
             android:layout_margin="@dimen/fab_margin"
             android:text="@string/choose_image" />
+
+        <Button
+            android:id="@+id/getFile"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_above="@+id/clear"
+            android:layout_alignParentRight="true"
+            android:layout_margin="@dimen/fab_margin"
+            android:text="@string/get_file" />
 
         <Button
             android:id="@+id/clear"
@@ -45,5 +54,6 @@
             android:layout_alignParentRight="true"
             android:layout_margin="@dimen/fab_margin"
             android:text="@string/clear" />
+
     </RelativeLayout>
 </LinearLayout>
