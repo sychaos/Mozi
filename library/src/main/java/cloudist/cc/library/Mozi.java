@@ -157,10 +157,14 @@ public class Mozi {
                     "#S" + idealMaxSize +
                     (TextUtils.isEmpty(suffix) ? ".jpg" : suffix);
         } else {
+            File file = findFile(keyNorm.nameRule(index), context);
             cacheBuilder = mTargetDir + "/" +
                     Checker.getKey(keyNorm.nameRule(index)) +
                     Checker.getKey(path) +
                     ".jpg";
+            if (file != null && !file.getAbsolutePath().equals(cacheBuilder)) {
+                file.delete();
+            }
         }
 
         return new File(cacheBuilder);
