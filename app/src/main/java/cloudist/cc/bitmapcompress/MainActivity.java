@@ -57,8 +57,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 PhotoPicker.builder()
-                        .setPhotoCount(9)
-                        .setShowCamera(true)
+                        .setPhotoCount(0)
+                        .setShowCamera(false)
                         .setShowGif(true)
                         .setPreviewEnabled(false)
                         .start(MainActivity.this, 10301);
@@ -87,10 +87,9 @@ public class MainActivity extends AppCompatActivity {
             }
             if (requestCode == 10301) {
                 if (data != null) {
-                    mImageList.clear();
                     ArrayList<String> photos = data.getStringArrayListExtra(PhotoPicker.KEY_SELECTED_PHOTOS);
-                    File file = Mozi.with(MainActivity.this).getFile(photos.get(0) + "玩个毛");
-                    Toast.makeText(MainActivity.this, file.exists() + "", Toast.LENGTH_SHORT).show();
+                    File file = Mozi.with(MainActivity.this).findFile(photos.get(0) + "玩个毛");
+                    Toast.makeText(MainActivity.this, file == null ? "null" : file.exists() + "", Toast.LENGTH_SHORT).show();
                 }
             }
         }

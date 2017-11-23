@@ -107,17 +107,22 @@ public class Mozi {
         }
     }
 
-    private File getFile(String key, Context context) {
+    private File findFile(String key, Context context) {
         if (TextUtils.isEmpty(mTargetDir)) {
             // 生成一个缓存图片的文件夹
             mTargetDir = getImageCacheDir(context).getAbsolutePath();
         }
-        return new File(mTargetDir + "/" +
-                Checker.getKey(key) +
-                ".jpg");
+        File dir = new File(mTargetDir);
+        for (File file : dir.listFiles()) {
+            if (file.getAbsolutePath().startsWith(mTargetDir + "/" +
+                    Checker.getKey(key))) {
+                return file;
+            }
+        }
+        return null;
     }
 
-    private File getFile(String path, int maxWidth, int maxHeight, int idealMaxSize, Context context) {
+    private File findFile(String path, int maxWidth, int maxHeight, int idealMaxSize, Context context) {
         if (TextUtils.isEmpty(mTargetDir)) {
             // 生成一个缓存图片的文件夹
             mTargetDir = getImageCacheDir(context).getAbsolutePath();
@@ -154,6 +159,7 @@ public class Mozi {
         } else {
             cacheBuilder = mTargetDir + "/" +
                     Checker.getKey(keyNorm.nameRule(index)) +
+                    Checker.getKey(path) +
                     ".jpg";
         }
 
@@ -284,12 +290,12 @@ public class Mozi {
             build().clear(context);
         }
 
-        public File getFile(String key) {
-            return build().getFile(key, context);
+        public File findFile(String key) {
+            return build().findFile(key, context);
         }
 
-        public File getFile(String path, int maxWidth, int maxHeight, int idealMaxSize) {
-            return build().getFile(path, maxWidth, maxHeight, idealMaxSize, context);
+        public File findFile(String path, int maxWidth, int maxHeight, int idealMaxSize) {
+            return build().findFile(path, maxWidth, maxHeight, idealMaxSize, context);
         }
     }
 
