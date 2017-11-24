@@ -56,8 +56,8 @@ class Engine {
         int longSide = Math.max(srcWidth, srcHeight);
         int shortSide = Math.min(srcWidth, srcHeight);
 
-        //scale 比例
         //通过原图的大小调整采样率，当图片过大时会造成OOM
+        //其实是个计算面积的过程
         float scale = ((float) shortSide / longSide);
         //[1, 0.5625) 即图片处于 [1:1 ~ 9:16)
         if (scale <= 1 && scale > 0.5625) {
