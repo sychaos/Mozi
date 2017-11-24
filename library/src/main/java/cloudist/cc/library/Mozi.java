@@ -136,6 +136,22 @@ public class Mozi {
                 (TextUtils.isEmpty(suffix) ? ".jpg" : suffix));
     }
 
+    private List<File> findFiles(String key, Context context) {
+        List<File> result = new ArrayList<>();
+        if (TextUtils.isEmpty(mTargetDir)) {
+            // 生成一个缓存图片的文件夹
+            mTargetDir = getImageCacheDir(context).getAbsolutePath();
+        }
+        File dir = new File(mTargetDir);
+        for (File file : dir.listFiles()) {
+            if (file.getAbsolutePath().startsWith(mTargetDir + "/" +
+                    Checker.getKey(key))) {
+                result.add(file);
+            }
+        }
+        return result;
+    }
+
     /**
      * Returns a mFile with a cache audio name in the private cache directory.
      *
@@ -157,13 +173,15 @@ public class Mozi {
                     "#S" + idealMaxSize +
                     (TextUtils.isEmpty(suffix) ? ".jpg" : suffix);
         } else {
-            File file = findFile(keyNorm.nameRule(index), context);
+            List<File> files = findFiles(keyNorm.nameRule(index), context);
             cacheBuilder = mTargetDir + "/" +
                     Checker.getKey(keyNorm.nameRule(index)) +
                     Checker.getKey(path) +
                     ".jpg";
-            if (file != null && !file.getAbsolutePath().equals(cacheBuilder)) {
-                file.delete();
+            for (File file : files) {
+                if (!file.getAbsolutePath().equals(cacheBuilder)) {
+                    file.delete();
+                }
             }
         }
 
@@ -300,6 +318,22 @@ public class Mozi {
 
         public File findFile(String path, int maxWidth, int maxHeight, int idealMaxSize) {
             return build().findFile(path, maxWidth, maxHeight, idealMaxSize, context);
+        }
+
+        /**
+         * begin delete image with synchronize
+         */
+        public void delete(String key) {
+            for (File file : build().findFiles(key, context)) {
+                file.delete();
+            }
+        }
+
+        /**
+         * begin delete image with synchronize
+         */
+        public void delete(String path, int maxWidth, int maxHeight, int idealMaxSize) {
+            build().findFile(path, maxWidth, maxHeight, idealMaxSize, context).delete();
         }
     }
 
