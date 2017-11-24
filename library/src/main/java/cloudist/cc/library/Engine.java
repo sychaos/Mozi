@@ -57,7 +57,7 @@ class Engine {
         int shortSide = Math.min(srcWidth, srcHeight);
 
         //scale 比例
-        // TODO 其实我是看不懂为什么用1664，4990和10240的
+        //通过原图的大小调整采样率，当图片过大时会造成OOM
         float scale = ((float) shortSide / longSide);
         //[1, 0.5625) 即图片处于 [1:1 ~ 9:16)
         if (scale <= 1 && scale > 0.5625) {
@@ -120,7 +120,6 @@ class Engine {
 
     private Bitmap compressScaleBitmap() {
         BitmapFactory.Options options = new BitmapFactory.Options();
-        // 这是一套方法 start
         options.inSampleSize = computeScaleSize();
         // 采样率压缩
         Bitmap bmp = BitmapFactory.decodeFile(srcImg, options);
